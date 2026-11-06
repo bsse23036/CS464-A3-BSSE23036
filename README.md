@@ -1,6 +1,6 @@
 # CS464 Assignment 03 - Mustafa Fawwaz - BSSE23036
 
-- **Video Link:** [Insert YouTube (unlisted) or Google Drive link here]
+- **Video Link:** https://drive.google.com/file/d/1wccR-28FIr86tzeoPV45t4xS57vvGoUB/view?usp=sharing
 - **Started from:** https://github.com/bsse23036/ITU-CS-464-ASSIGNMENT-02-BSSE23036.git
 - **Controls:** WASD for camera-relative movement, Mouse to orbit camera, Spacebar for variable jump (with Coyote Time and Jump Buffering), Esc to toggle cursor lock
 - **To win a level:** Reach the green `GoalZone` portal before the timer expires
