@@ -2,86 +2,46 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [Header("Target & Distance")]
-    [SerializeField] private Transform target;
-    [SerializeField] private float distance = 7f;
-    [SerializeField] private float height = 4f;
+    [Header("Target Settings")]
+    public Transform target;
+    public Vector3 targetOffset = new Vector3(0f, 1.5f, 0f);
+    public float distance = 5.0f;
 
-    [Header("Mouse Orbit Settings")]
-    [SerializeField] private float mouseSensitivity = 3f;
-    [SerializeField] private float minYAngle = -10f;
-    [SerializeField] private float maxYAngle = 60f;
+    [Header("Orbit Sensitivity")]
+    public float xSpeed = 120.0f;
+    public float ySpeed = 80.0f;
 
-    [Header("Smoothing (Sharpness)")]
-    [SerializeField] private float sharpness = 5f; // Exponential smoothing[cite: 4]
+    [Header("Angle Limits")]
+    public float yMinLimit = -10.0f;
+    public float yMaxLimit = 80.0f;
 
-    private float yaw = 0f;
-    private float pitch = 20f;
-    private Rigidbody targetRb;
+    private float x = 0.0f;
+    private float y = 0.0f;
 
     void Start()
     {
-        if (target == null)
-        {
-            PlayerController player = FindAnyObjectByType<PlayerController>();
-            if (player != null) target = player.transform;
-        }
+        Vector3 angles = transform.eulerAngles;
+        x = angles.y;
+        y = angles.x;
 
-        if (target != null)
-        {
-            targetRb = target.GetComponent<Rigidbody>();
-        }
-
-        LockCursor();
-    }
-
-    void Update()
-    {
-        // Toggle cursor lock with ESC
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (Cursor.lockState == CursorLockMode.Locked)
-            {
-                UnlockCursor();
-            }
-            else
-            {
-                LockCursor();
-            }
-        }
-
-        if (Cursor.lockState == CursorLockMode.Locked)
-        {
-            yaw += Input.GetAxis("Mouse X") * mouseSensitivity;
-            pitch -= Input.GetAxis("Mouse Y") * mouseSensitivity;
-            pitch = Mathf.Clamp(pitch, minYAngle, maxYAngle);
-        }
-    }
-
-    void LateUpdate() // Must run in LateUpdate[cite: 4]
-    {
-        if (target == null) return;
-
-        Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
-        Vector3 targetPosition = target.position + Vector3.up * height;
-        Vector3 desiredPosition = targetPosition - (rotation * Vector3.forward * distance);
-
-        // Frame-rate independent exponential smoothing: 1 - e^(-k * dt)[cite: 4]
-        float blend = 1f - Mathf.Exp(-sharpness * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, blend);
-
-        transform.LookAt(targetPosition);
-    }
-
-    private void LockCursor()
-    {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    private void UnlockCursor()
+    void LateUpdate()
     {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        if (target == null) return;
+
+        x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+        y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+
+        y = Mathf.Clamp(y, yMinLimit, yMaxLimit);
+
+        Quaternion rotation = Quaternion.Euler(y, x, 0);
+        Vector3 focusPoint = target.position + targetOffset;
+        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + focusPoint;
+
+        transform.rotation = rotation;
+        transform.position = position;
     }
 }

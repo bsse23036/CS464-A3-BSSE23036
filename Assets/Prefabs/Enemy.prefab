@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4559909523595155303}
   - component: {fileID: 1990085390624380028}
   - component: {fileID: -3593085685262677700}
+  - component: {fileID: 4979418037224167095}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -167,7 +168,20 @@ MonoBehaviour:
   fieldOfViewAngle: 90
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
+--- !u!114 &4979418037224167095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5422135461967854662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e550d02e4d8c024f8ddaae26d544d26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hazard
+  damageAmount: 1
 --- !u!1 &8432998490299276250
 GameObject:
   m_ObjectHideFlags: 0
