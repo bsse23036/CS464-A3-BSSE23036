@@ -254,7 +254,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerUp
   powerUpType: 0
-  invincibilityDuration: 3
+  invincibilityDuration: 5
   rotateSpeed: 120
   bobSpeed: 3
   bobHeight: 0.2

@@ -1,78 +1,84 @@
 using UnityEngine;
 
-// The player's hearts, with a moment of invulnerability after every hit.
 public class Health : MonoBehaviour
 {
-    [Header("Health Settings")]
-    [SerializeField] private int max = 3;
-    [SerializeField] private float iFrames = 1.0f;
+    public int maxHealth = 3;
+    [SerializeField] private int currentHealth;
     public bool shielded = false;
+    [SerializeField] private float iFrameDuration = 1.0f;
+    [SerializeField] private float defaultKnockbackForce = 10f;
 
-    private int current;
-    private float invulnerableUntil;
+    private float invincibleUntil;
+    private Rigidbody rb;
 
-    public int Current => current;
-    public int Max => max;
+    public int Current => currentHealth;
 
     void Awake()
     {
-        current = max;
+        currentHealth = maxHealth;
+        rb = GetComponent<Rigidbody>();
     }
 
-    void Start()
+    // Overload allowing default damage without knockback position if needed
+    public void TakeDamage(int damage)
     {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.UpdateUI();
-        }
+        TakeDamage(damage, transform.position - transform.forward, defaultKnockbackForce);
     }
 
-    // True if the hit landed. A player who is down, or still invulnerable, can't be hit.
-    public bool TakeDamage(int amount)
+    // Main damage method accepting source position for knockback calculations
+    public void TakeDamage(int damage, Vector3 damageSourcePosition, float force = 10f)
     {
-        if (current <= 0 || Time.time < invulnerableUntil) return false;
-
-        invulnerableUntil = Time.time + iFrames;
+        if (Time.time < invincibleUntil) return;
 
         if (shielded)
         {
             shielded = false;
+            invincibleUntil = Time.time + iFrameDuration;
             Debug.Log("Shield absorbed the damage!");
-            if (GameManager.Instance != null) GameManager.Instance.UpdateUI();
-            return false;
+            ApplyKnockback(damageSourcePosition, force);
+            return;
         }
 
-        current -= amount;
-        Debug.Log($"Player took {amount} damage! Current Health: {current}/{max}");
+        currentHealth -= damage;
+        invincibleUntil = Time.time + iFrameDuration;
+
+        ApplyKnockback(damageSourcePosition, force);
 
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdateUI();
         }
 
-        if (current <= 0)
+        if (currentHealth <= 0)
         {
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.PlayerDied();
             }
-            else
-            {
-                Debug.LogWarning("Player health reached zero, but GameManager is missing!");
-            }
         }
-
-        return true;
     }
 
-    public void Restore(float protection)
+    private void ApplyKnockback(Vector3 sourcePosition, float force)
     {
-        current = max;
-        invulnerableUntil = Time.time + protection;
+        if (rb == null) return;
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.UpdateUI();
-        }
+        // Calculate direction pointing away from damage source
+        Vector3 knockbackDir = (transform.position - sourcePosition);
+        knockbackDir.y = 0; // Flatten XZ direction vector
+        knockbackDir = knockbackDir.normalized;
+
+        // Add slight upward lift (0.4) to break ground friction during impulse
+        knockbackDir.y = 0.4f;
+        knockbackDir.Normalize();
+
+        // Zero out current velocity so falling/moving momentum doesn't dampen impulse force
+        rb.linearVelocity = Vector3.zero;
+        rb.AddForce(knockbackDir * force, ForceMode.Impulse);
+    }
+
+    public void Restore(float invincibilityTime)
+    {
+        currentHealth = maxHealth;
+        invincibleUntil = Time.time + invincibilityTime;
     }
 }

@@ -6,12 +6,17 @@ public class Hazard : MonoBehaviour
     [SerializeField] private int damageAmount = 1;
 
     private void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag("Player"))
     {
-        if (other.CompareTag("Player"))
+        Health playerHealth = other.GetComponentInParent<Health>();
+        if (playerHealth != null)
         {
-            DealDamage(other.gameObject);
+            // Passes hazard position and 12f impulse force
+            playerHealth.TakeDamage(1, transform.position, 10f);
         }
     }
+}
 
     private void OnCollisionEnter(Collision collision)
     {

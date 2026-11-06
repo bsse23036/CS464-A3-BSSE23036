@@ -2,7 +2,7 @@ using UnityEngine;
 
 public enum PatrolMode { Loop, PingPong, Random }
 
-// Custom non-NavMesh Enemy Patrol with FOV detection and player chase behavior
+[RequireComponent(typeof(Rigidbody))]
 public class EnemyPatrol : MonoBehaviour
 {
     [Header("Patrol Settings")]
@@ -16,9 +16,10 @@ public class EnemyPatrol : MonoBehaviour
     [SerializeField] private float chaseSpeed = 5.5f;
     [SerializeField] private float detectionRadius = 10f;
     [Range(0, 360)] [SerializeField] private float fieldOfViewAngle = 90f;
-    [SerializeField] private LayerMask obstacleMask; // Assign cover/wall layers to block vision
+    [SerializeField] private LayerMask obstacleMask;
 
     private Transform player;
+    private Rigidbody rb;
     private int index;
     private int step = 1;
     private float waitUntil;
@@ -26,7 +27,8 @@ public class EnemyPatrol : MonoBehaviour
 
     void Start()
     {
-        // Find player by tag
+        rb = GetComponent<Rigidbody>();
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -36,76 +38,80 @@ public class EnemyPatrol : MonoBehaviour
 
     void Update()
     {
-        // 1. Check if player is within line of sight
         if (player != null && CanSeePlayer())
         {
             isChasing = true;
+        }
+        else
+        {
+            if (isChasing)
+            {
+                isChasing = false;
+                waitUntil = Time.time;
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (isChasing && player != null)
+        {
             ChasePlayer();
         }
         else
         {
-            // Resume patrol if player breaks line of sight
-            if (isChasing)
-            {
-                isChasing = false;
-                waitUntil = Time.time; // Continue patrol immediately
-            }
-
             Patrol();
         }
     }
-    // void LateUpdate()
-    // {
-    //     // Strip away pitch (X) and roll (Z), keeping only the yaw (Y) turn rotation
-    //     Vector3 euler = transform.rotation.eulerAngles;
-    //     transform.rotation = Quaternion.Euler(0f, euler.y, 0f);
-    // }
 
-   private void Patrol()
-{
-    if (points == null || points.Length == 0) return;
-    if (Time.time < waitUntil) return;
-
-    Vector3 target = points[index].position;
-
-    // Ignore Y-height for flat 2D distance calculation
-    Vector3 currentPos = transform.position;
-    Vector3 targetPos = new Vector3(target.x, currentPos.y, target.z);
-
-    Vector3 toTarget = targetPos - currentPos;
-    float distance = toTarget.magnitude;
-
-    // 1. Move only if farther than 0.15 meters from target to prevent overshooting jitter
-    if (distance > 0.15f)
+    private void Patrol()
     {
-        // Move towards target position
-        transform.position = Vector3.MoveTowards(currentPos, targetPos, speed * Time.deltaTime);
+        if (points == null || points.Length == 0) return;
+        if (Time.time < waitUntil)
+        {
+            // Keep existing gravity, zero out horizontal velocity while waiting
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            return;
+        }
 
-        // Smooth rotation towards movement direction
-        Quaternion lookRotation = Quaternion.LookRotation(toTarget.normalized);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, lookRotation, turnSpeed * Time.deltaTime);
+        Vector3 target = points[index].position;
+        Vector3 currentPos = transform.position;
+        Vector3 targetPos = new Vector3(target.x, currentPos.y, target.z);
+
+        Vector3 toTarget = targetPos - currentPos;
+        float distance = toTarget.magnitude;
+
+        if (distance > 0.15f)
+        {
+            Vector3 moveDir = toTarget.normalized;
+            // Move horizontally via Rigidbody while preserving gravity on Y
+            rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
+
+            Quaternion lookRotation = Quaternion.LookRotation(moveDir);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, lookRotation, turnSpeed * Time.fixedDeltaTime);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            index = NextIndex();
+            waitUntil = Time.time + waitTime;
+        }
     }
-    else
-    {
-        // Destination reached cleanly without overshooting
-        index = NextIndex();
-        waitUntil = Time.time + waitTime;
-    }
-}
 
     private void ChasePlayer()
     {
         Vector3 target = player.position;
         Vector3 toTarget = target - transform.position;
         toTarget.y = 0;
-        // Direct movement towards player position
-        transform.position = Vector3.MoveTowards(transform.position, target, chaseSpeed * Time.deltaTime);
 
-        // Direct rotation towards player
-        if (toTarget != Vector3.zero)
+        if (toTarget.magnitude > 0.1f)
         {
-            Quaternion look = Quaternion.LookRotation(toTarget);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, look, turnSpeed * Time.deltaTime);
+            Vector3 moveDir = toTarget.normalized;
+            // Apply chase velocity while letting gravity pull the enemy down if off a ledge
+            rb.linearVelocity = new Vector3(moveDir.x * chaseSpeed, rb.linearVelocity.y, moveDir.z * chaseSpeed);
+
+            Quaternion look = Quaternion.LookRotation(moveDir);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, look, turnSpeed * Time.fixedDeltaTime);
         }
     }
 
@@ -114,21 +120,18 @@ public class EnemyPatrol : MonoBehaviour
         Vector3 dirToPlayer = (player.position - transform.position);
         float distanceToPlayer = dirToPlayer.magnitude;
 
-        // 1. Distance check
         if (distanceToPlayer <= detectionRadius)
         {
-            // 2. FOV Angle check
             float angleToPlayer = Vector3.Angle(transform.forward, dirToPlayer.normalized);
             if (angleToPlayer <= fieldOfViewAngle / 2f)
             {
-                // 3. Line of sight Raycast check (checks if obstacles block vision)
                 Vector3 eyePosition = transform.position + Vector3.up * 0.5f;
                 Vector3 playerTargetPos = player.position + Vector3.up * 0.5f;
                 Vector3 rayDir = (playerTargetPos - eyePosition).normalized;
 
                 if (!Physics.Raycast(eyePosition, rayDir, distanceToPlayer, obstacleMask))
                 {
-                    return true; // Line of sight clear
+                    return true;
                 }
             }
         }
@@ -153,7 +156,6 @@ public class EnemyPatrol : MonoBehaviour
             return Mathf.Clamp(index + step, 0, points.Length - 1);
         }
 
-        // Random mode
         int next = Random.Range(0, points.Length);
         return (next == index && points.Length > 1) ? (next + 1) % points.Length : next;
     }
@@ -173,7 +175,8 @@ public class EnemyPatrol : MonoBehaviour
         Health playerHealth = collision.gameObject.GetComponent<Health>();
         if (playerHealth != null)
         {
-            playerHealth.TakeDamage(1);
+            // Passes enemy position and 10f impulse force
+            playerHealth.TakeDamage(1, transform.position, 10f);
         }
     }
 }
@@ -186,10 +189,8 @@ public class EnemyPatrol : MonoBehaviour
         }
     }
 
-    // Visualize FOV cone and patrol path in the Scene View
     private void OnDrawGizmos()
     {
-        // Draw Patrol Path
         if (points != null && points.Length > 1)
         {
             Gizmos.color = Color.cyan;
@@ -207,7 +208,6 @@ public class EnemyPatrol : MonoBehaviour
             }
         }
 
-        // Draw Vision Cone & Detection Radius
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
 

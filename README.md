@@ -1,69 +1,41 @@
-# CS464 Assignment 02
+# CS464 Assignment 03 - Mustafa Fawwaz - BSSE23036
 
-**Name:** Mustafa Fawwaz | **Roll Number:** BSSE23036
+- **Video Link:** [Insert YouTube (unlisted) or Google Drive link here]
+- **Started from:** https://github.com/bsse23036/ITU-CS-464-ASSIGNMENT-02-BSSE23036.git
+- **Controls:** WASD for camera-relative movement, Mouse to orbit camera, Spacebar for variable jump (with Coyote Time and Jump Buffering), Esc to toggle cursor lock
+- **To win a level:** Reach the green `GoalZone` portal before the timer expires
 
-This repository contains the implementation and parameter tuning for Assignment 02. The project focuses on creating a polished, physics-based 3D character controller and camera system that delivers tight, responsive platforming across five greybox level blockouts.
+## Levels
 
----
+| Level | Screenshot | New idea | Combined with | 
+| ----- | ----- | ----- | ----- | 
+| Level01 | ![Level 01](Docs/levels/level01.png) | Introduction to camera-relative WASD platforming, coin collection, and basic guard line-of-sight detection. | Stepping platform elevation leading directly to the exit portal. | 
+| Level02 | ![Level 02](Docs/levels/level02.png) | Vertical stair ascensions with dynamic timed spike hazard arrays ($\ge 0.5\text{s}$ warning). | Guard patrol loops guarding mid-level platform coin clusters. | 
+| Level03 | ![Level 03](Docs/levels/level03.png) | Diverging 3-lane route: Central high-risk spike bridge vs. Left/Right stealth cover arenas. | Solid wall occlusion breaking multiple guard vision cones (`obstacleMask`). | 
+| Level04 | ![Level 04](Docs/levels/level04.png) | Power-Up spawn room, tight spatial pinch hazard corridor, and high-density multi-guard courtyard. | Timed Shield/Invincibility buff combined with aggressive guard chase mechanics ($5.5\text{m/s}$). | 
+| Level05 | ![Level 05](Docs/levels/level05.png) | Multi-stage ascending arenas with jump pads, overlapping guard vision networks, and hazard fields. | Level-wide bottom `KillZone`, strict countdown timer, and full integration of all mechanics. | 
 
-## System Architecture & Implementation
+## The numbers
 
-The movement and camera mechanics are split cleanly between Unity's execution loops to ensure frame-rate independence and robust physics behavior:
+| Number | Value | Why this value |
+|---|---|---|
+| Patrol speed | `3.5 m/s` | Slower than the player's movement speed (`5.5 m/s`), establishing a predictable rhythm for players to observe and plan stealth routes. |
+| Chase range | `10.0 m` | Broad enough to detect players crossing open platforms, but restricted by field-of-view ($70^\circ$) and obstacle line-of-sight raycasting. |
+| Knockback | `10.0` (`ForceMode.Impulse`) | Applies an instant velocity impulse that pushes the player clear of hazards by approximately $2.5\text{m}$ without launching them out of bounds. |
+| I-frames | `1.0 s` | Provides enough time for the player to recover and move away from multi-hit hazards or enemies without stacking damage repeatedly. |
+| Power-up duration | `5.0 s` | Long enough to clear a tight spatial pinch or hazard corridor, but not long enough to trivialize an entire level without precise timing. |
 
-- **Input & Jump Queuing (`Update`):** Reads user WASD input, projects movement directions relative to the camera view, and registers jump requests via input buffering.
-- **Physics Execution (`FixedUpdate`):** Applies horizontal movement forces to the `Rigidbody`, calculates kinematics for jumping, and handles ground checks using a dedicated layer mask.
-- **Camera Tracking (`LateUpdate`):** Updates camera orbit position after all player movement has resolved, utilizing frame-rate independent exponential smoothing.
+## Short answers
 
----
+**1. Why does a trigger need a Rigidbody on at least one of the two objects?**
+Unity's physics engine optimizes collision testing by ignoring static-to-static overlaps. For Unity to trigger `OnTriggerEnter`, `OnTriggerStay`, or `OnTriggerExit` callbacks, at least one of the participating GameObjects must have an active `Rigidbody` component (kinematic or dynamic) so the broadphase collision system registers moving trigger events.
 
-## Tuning Table
+**2. Which ForceMode do your knockback and your Part A force use, and why each?**
+* **Part A Force (JumpPad / Launch Pad):** Uses `ForceMode.Impulse`. It applies an instantaneous mass-dependent force ideal for launching the player upward or across gaps in a single frame without waiting for continuous acceleration over time.
+* **Knockback:** Uses `ForceMode.Impulse` after explicitly zeroing out `rb.linearVelocity`. This ensures an immediate, consistent impulse displacement away from the hazard regardless of the player's prior speed or direction.
 
-Below are the exact parameters configured in `PlayerController.cs` and `CameraFollow.cs` to achieve a snappy, responsive feel across all five levels:
+**3. What does your code do when a second power-up is picked up while one is running?**
+When a second power-up of the same type is collected while an effect is active, the system refreshes the duration timer back to its maximum value (`invincibilityDuration` or `shielded = true`), extending the protection window without stacking multi-buff multipliers or creating duplicate coroutines.
 
-| Parameter | Selected Value | Design Justification |
-| :--- | :--- | :--- |
-| **Movement Speed (`speed`)** | `5.0` | Provides swift, controllable traversal across level blockouts without causing precision overshooting. |
-| **Jump Height (`jumpHeight`)** | `1.5m` | Scaled to clear single-block obstacles reliably while keeping jump arcs predictable. |
-| **Coyote Time (`coyoteTime`)** | `0.1s` | Allows a $100\text{ms}$ grace period after running off edges, preventing unintended falls without feeling unfair. |
-| **Jump Buffer (`jumpBuffer`)** | `0.175s` | Registers jump inputs made $175\text{ms}$ prior to landing, eliminating missed inputs during rapid platforming. |
-| **Fall Multiplier (`fallMultiplier`)** | `2.2` | Increases downward gravity during descent to avoid "floaty" physics and give landing a heavy, responsive feel. |
-| **Camera Sharpness (`sharpness`)** | `5.0` | Uses exponential smoothing ($1 - e^{-k \cdot dt}$) to create smooth follow dynamics without camera lag. |
-| **Mouse Sensitivity** | `3.0` | Provides fluid, controllable 360-degree orbit rotation locked to the screen view. |
-
----
-
-## 🎯 Level Traversal Overview
-
-All five level blockouts utilize the unified `Player` and `Main Camera` prefabs with consistent physics settings:
-
-| Level | Focus & Challenges | Traversal Dynamics |
-| :--- | :--- | :--- |
-| **Level 01** | Parkour Stunt Track | Tests straight-line momentum, 45-degree ramp climbing, and precision jumps across cylinder bridges. |
-| **Level 02** | Vertical Ascent | Evaluates slope stability and upward jump trajectories leading to an illuminated treasure room. |
-| **Level 03** | Elevated Arena | Features diverging paths testing choice execution between safe solid perimeters and floating platforms. |
-| **Level 04** | Pinch & Release Tunnel | Tests tight platforming through enclosed spatial pinches into open courtyard releases. |
-| **Level 05** | Track Platforming | Features long-approach ramps, cylindrical tunnel navigation, and precise drop-down platform landings. |
-
----
-
-## Short Answer Questions (Part D)
-
-### 1. Why do we separate input reading in `Update()` from physics forces in `FixedUpdate()`?
-`Update()` runs once per rendered frame, making it the ideal location to capture user keyboard/mouse inputs instantaneously without missing button presses (such as jump buffering). `FixedUpdate()` runs on a deterministic physics timestep (typically 50 Hz). Applying forces or velocity modifications inside `Update()` results in inconsistent movement behavior dependent on frame rate spikes or drops. Splitting the logic ensures reliable physics calculations while maintaining crisp input responsiveness.
-
-### 2. How does camera-relative movement improve 3D platforming readability?
-In a 3D environment with a free-orbiting camera, fixed world-axis controls (where pressing **W** always moves absolute World North) create severe cognitive friction whenever the camera rotates. By projecting **WASD** movement inputs onto the flattened horizontal plane of the camera (`camForward` and `camRight`), pressing **W** always pushes the character directly away from the player's screen view, making navigation intuitive regardless of camera orientation.
-
-### 3. What role do Coyote Time and Jump Buffering play in game feel?
-In strict physical simulations, pressing a jump key 1 frame before landing or 1 frame after leaving a ledge results in a non-input, leading to player frustration. Coyote time gives players a brief window ($0.1\text{s}$) to execute a jump after walking off a platform, while jump buffering holds pre-landing inputs ($0.175\text{s}$) to execute immediately upon touching down. Together, these fairness windows bridge the gap between player intent and execution.
-
----
-
-## Video Showcase
-
-- **Video Folder Link:** https://drive.google.com/drive/folders/1RtQXvaG_EdV7HNikOdZDjYsWHAcSOooQ?usp=drive_link
-- **Showcase Highlights:**
-  - Mouse-orbit camera with **ESC** toggle cursor locking.
-  - Camera-relative WASD movement in action.
-  - Demonstration of Coyote Time and Jump Buffering windows.
-  - Full traversal across Levels 01 through 05.
+**4. Why can `==` fail as an arrival check, and when does it work?**
+Floating-point calculations in Unity (`float`) introduce small precision rounding errors during frame movement (`Time.deltaTime`). Direct equality (`transform.position == targetPosition`) almost always fails because an object moving at fixed speeds will overshoot the exact coordinates (e.g., stopping at $5.000002$ instead of $5.0$). It only works when positions are strictly discrete integers or snapped on grid axes. Therefore, arrival checks should use distance thresholds like `Vector3.Distance(a, b) < threshold` or `(target - current).sqrMagnitude < threshold`.
