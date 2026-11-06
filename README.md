@@ -10,8 +10,8 @@
 | Level | Screenshot | New idea | Combined with | 
 | ----- | ----- | ----- | ----- | 
 | Level01 | ![Level 01](Docs/levels/level01.png) | Introduction to camera-relative WASD platforming, coin collection, and basic guard line-of-sight detection. | Stepping platform elevation leading directly to the exit portal. | 
-| Level02 | ![Level 02](Docs/levels/level02.png) | Vertical stair ascensions with dynamic timed spike hazard arrays ($\ge 0.5\text{s}$ warning). | Guard patrol loops guarding mid-level platform coin clusters. | 
-| Level03 | ![Level 03](Docs/levels/level03.png) | Diverging 3-lane route: Central high-risk spike bridge vs. Left/Right stealth cover arenas. | Solid wall occlusion breaking multiple guard vision cones (`obstacleMask`). | 
+| Level02 | ![Level 02](Docs/levels/level02.png) | Vertical stair ascensions with dynamic timed spike hazard arrays. | Guard patrol loops guarding mid-level platform coin clusters. | 
+| Level03 | ![Level 03](Docs/levels/level03.png) | Diverging 3-lane route: Central high-risk spike bridge vs. Left/Right stealth cover arenas. | Solid wall occlusion breaking multiple guard vision cones. | 
 | Level04 | ![Level 04](Docs/levels/level04.png) | Power-Up spawn room, tight spatial pinch hazard corridor, and high-density multi-guard courtyard. | Timed Shield/Invincibility buff combined with aggressive guard chase mechanics ($5.5\text{m/s}$). | 
 | Level05 | ![Level 05](Docs/levels/level05.png) | Multi-stage ascending arenas with jump pads, overlapping guard vision networks, and hazard fields. | Level-wide bottom `KillZone`, strict countdown timer, and full integration of all mechanics. | 
 
