@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 4559909523595155303}
   - component: {fileID: 1990085390624380028}
   - component: {fileID: 3779553543144618721}
-  - component: {fileID: 3251928937453527397}
+  - component: {fileID: 8838305519057087371}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -274,7 +274,7 @@ MonoBehaviour:
   max: 3
   iFrames: 1
   shielded: 0
---- !u!114 &3251928937453527397
+--- !u!114 &8838305519057087371
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -283,18 +283,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 5422135461967854662}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e178e6aca037c2448d34b07a69e94a9, type: 3}
+  m_Script: {fileID: 11500000, guid: 0b77f9f4875798749b631e7a89cf3524, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  speed: 5
-  jumpHeight: 1.8
-  coyoteTime: 0.1
-  jumpBuffer: 0.12
-  fallMultiplier: 2.2
-  feet: {fileID: 0}
-  checkRadius: 0.35
-  groundMask:
+  moveSpeed: 8
+  cameraTransform: {fileID: 0}
+  groundLayer:
     serializedVersion: 2
     m_Bits: 0
-  bodyMesh: {fileID: 0}
-  mainCamera: {fileID: 0}
+  groundCheckDistance: 1.1
+  jumpForce: 7
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
+  coyoteTime: 0.15
+  jumpBufferTime: 0.15

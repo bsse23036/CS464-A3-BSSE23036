@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3480568265609878073}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Stairs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,6 +46,10 @@ PrefabInstance:
     - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_Name
       value: StairStep
+      objectReference: {fileID: 0}
+    - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1965929240981232720, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_LocalScale.x
@@ -113,6 +117,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: StairStep (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1965929240981232720, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -179,6 +187,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: StairStep (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1965929240981232720, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -244,6 +256,10 @@ PrefabInstance:
     - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_Name
       value: StairStep (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 867775050440607205, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1965929240981232720, guid: 4c52c27c9194660429eebc25258bb3fa, type: 3}
       propertyPath: m_LocalScale.x
